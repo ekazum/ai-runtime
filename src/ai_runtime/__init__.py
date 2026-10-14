@@ -8,7 +8,7 @@ from .serving_registry import ServingRegistry
 from .supervisor import ServiceSupervisor
 from .thread_handle import ThreadHandle
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 __all__ = [
     "BatchModel", "BatchRequest", "GpuBatchStage", "LockedCounter",

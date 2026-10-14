@@ -96,7 +96,7 @@ class GpuBatchStage:
 
     def form_batches(self, window: list) -> list[list]:
         """Sort the window by weight and cut it into batches under ``max_weight``."""
-        window.sort(key=lambda entry: self._model.weight(entry[0]))
+        window.sort(key=lambda queued: self._model.weight(queued[0]))
         batches: list[list] = []
         batch: list = []
         weight = 0

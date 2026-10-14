@@ -8,7 +8,7 @@ cover a service that keeps a connection to a server it may lose.
 import queue
 import threading
 import time
-from multiprocessing.connection import Client, Connection
+from multiprocessing.connection import Client
 
 from .thread_handle import ThreadHandle
 
@@ -66,8 +66,11 @@ class ServiceSupervisor:
         return [h.name for h in self._handles if not h.is_alive()]
 
     def dial(self, address: tuple[str, int], timeout: float,
-             retry_interval: float = 5.0) -> Connection:
-        """Connect to ``address``, retrying while the server finishes starting up."""
+             retry_interval: float = 5.0):
+        """Connect to ``address``, retrying while the server finishes starting up.
+
+        Returns the ``multiprocessing.connection`` connection ``Client`` opens.
+        """
         deadline = time.monotonic() + timeout
         while True:
             try:
