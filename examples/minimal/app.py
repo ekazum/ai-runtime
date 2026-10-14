@@ -18,16 +18,19 @@ WORDS = ["alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta"]
 class EchoModel:
     """A ``BatchModel``: weight is the word length, the result its upper case."""
 
-    def load(self) -> None:
+    @staticmethod
+    def load() -> None:
         time.sleep(0.2)            # a real model loads its weights here
 
     def unload(self) -> None:
         pass
 
-    def weight(self, item: str) -> int:
+    @staticmethod
+    def weight(item: str) -> int:
         return len(item)
 
-    def process(self, items: list, budgets: list) -> list:
+    @staticmethod
+    def process(items: list, budgets: list) -> list:
         time.sleep(0.001 * sum(len(item) for item in items))
         return [item.upper()[:budget] for item, budget in zip(items, budgets)]
 
