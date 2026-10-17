@@ -1,6 +1,7 @@
 # ai-runtime
 
-Threads, queues, GPU batching and service supervision for ML pipelines. Standard library only.
+Threads, queues, GPU batching and service supervision for ML pipelines. The core is standard library only;
+`[torch]` adds checkpoints, `[config]` adds YAML configs.
 
 ## Parts
 
@@ -13,6 +14,15 @@ Threads, queues, GPU batching and service supervision for ML pipelines. Standard
   `LockedCounter`, `ServingRegistry`.
 - **Discovery** (`ServiceEndpoint`): a running service publishes host and port in a JSON file on shared storage;
   clients on any node read it.
+- **Pipeline** (`Pipeline`, `SHUTDOWN_SENTINEL`): named thread stages under one shutdown event, started in order;
+  `stop(join_order)` sends each stage's sentinel and joins in that order, late sentinels after a named stage joins.
+- **Stores** (`SqliteStore`, `DevSelectionStore`): a SQLite file safe for one writer and readers on other hosts
+  (DELETE journal), tables that widen as new keys arrive; `DevSelectionStore` adds train/dev/meta rows and
+  best-so-far selection over the dev rows.
+- **Checkpoints** (`ai_runtime.checkpoints`, `[torch]`): atomic saves, snapshots, promote, delete;
+  `LatestBestCheckpointManager` keeps `latest.pt` for resume and `best.pt` for the champion.
+- **Config** (`ai_runtime.yaml_config`, `[config]`): `YamlConfig`, a frozen pydantic model loaded from one YAML
+  mapping, with `_validate`, `_constructor_kwargs` and `log_loaded` hooks.
 
 ## Use
 

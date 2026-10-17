@@ -2,16 +2,20 @@
 
 from .batching import BatchModel, BatchRequest, GpuBatchStage
 from .counters import LockedCounter
+from .dev_selection_store import DevSelectionStore
+from .pipeline import SHUTDOWN_SENTINEL, Pipeline
 from .rw_lock import ReadWriteLock
 from .service_endpoint import ServiceEndpoint
 from .serving_registry import ServingRegistry
+from .sqlite_store import SqliteStore
 from .supervisor import ServiceSupervisor
 from .thread_handle import ThreadHandle
 
-__version__ = "0.1.1"
+__version__ = "0.3.0"
 
 __all__ = [
-    "BatchModel", "BatchRequest", "GpuBatchStage", "LockedCounter",
-    "ReadWriteLock", "ServiceEndpoint", "ServiceSupervisor", "ServingRegistry",
+    "BatchModel", "BatchRequest", "DevSelectionStore", "GpuBatchStage",
+    "LockedCounter", "Pipeline", "ReadWriteLock", "SHUTDOWN_SENTINEL",
+    "ServiceEndpoint", "ServiceSupervisor", "ServingRegistry", "SqliteStore",
     "ThreadHandle",
 ]
