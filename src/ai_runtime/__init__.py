@@ -11,7 +11,7 @@ from .sqlite_store import SqliteStore
 from .supervisor import ServiceSupervisor
 from .thread_handle import ThreadHandle
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 __all__ = [
     "BatchModel", "BatchRequest", "DevSelectionStore", "GpuBatchStage",

@@ -50,6 +50,8 @@ requests.put(BatchRequest(keys=keys, items=items, sink=my_results, budgets=budge
 
 `python examples/minimal/app.py` runs two producers against one batching stage over a CPU dummy model.
 
+`AGENTS.md` lists the signatures, the assembly order and the rules to keep.
+
 ## License
 
 Apache-2.0
