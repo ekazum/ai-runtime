@@ -35,6 +35,7 @@ The package depends on the standard library only. The project's model, whatever 
 | `counters.py`         | `LockedCounter`                               | An int that many threads advance                            |
 | `serving_registry.py` | `ServingRegistry`                             | Protocol a worker notifies as it starts and stops serving   |
 | `service_endpoint.py` | `ServiceEndpoint`                             | Host and port of a running service, in a shared JSON file   |
+| `logging.py`          | `setup_logging`, `LOG_FORMAT`                 | Root logger to stdout, level from `LOG_LEVEL`               |
 
 ---
 
@@ -127,6 +128,7 @@ ai-runtime/
         ├── __init__.py
         ├── batching.py
         ├── counters.py
+        ├── logging.py
         ├── rw_lock.py
         ├── service_endpoint.py
         ├── serving_registry.py

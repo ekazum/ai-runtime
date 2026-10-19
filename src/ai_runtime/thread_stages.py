@@ -1,4 +1,4 @@
-"""``Pipeline`` — thread stages started in one order and torn down in another.
+"""``ThreadStages`` — thread stages started in one order and torn down in another.
 
 Each stage is a group of threads, optionally with the queue they consume.
 ``stop`` sets the shutdown event, wakes every consumer with one sentinel
@@ -29,7 +29,7 @@ class _Stage:
     sentinel_after: "str | None"
 
 
-class Pipeline:
+class ThreadStages:
     """Starts stages in the order added; stops them in a given join order."""
 
     def __init__(self, name: str, shutdown_event: threading.Event | None = None,

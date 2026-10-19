@@ -12,9 +12,11 @@ Threads, queues, GPU batching and service supervision for ML pipelines. The core
   checks, bounded joins, a retrying `dial` and `drain` for a service connected to a server it may lose.
 - **Primitives**: `ThreadHandle` (a thread whose exception re-raises on `join`), `ReadWriteLock` (writer-preferring),
   `LockedCounter`, `ServingRegistry`.
+- **Logging** (`ai_runtime.logging`): `setup_logging` sends the root logger to stdout once per entry point, level
+  from `LOG_LEVEL`; modules only call `logging.getLogger(__name__)`.
 - **Discovery** (`ServiceEndpoint`): a running service publishes host and port in a JSON file on shared storage;
   clients on any node read it.
-- **Pipeline** (`Pipeline`, `SHUTDOWN_SENTINEL`): named thread stages under one shutdown event, started in order;
+- **Thread stages** (`ThreadStages`, `SHUTDOWN_SENTINEL`): named thread stages under one shutdown event, started in order;
   `stop(join_order)` sends each stage's sentinel and joins in that order, late sentinels after a named stage joins.
 - **Stores** (`SqliteStore`, `DevSelectionStore`): a SQLite file safe for one writer and readers on other hosts
   (DELETE journal), tables that widen as new keys arrive; `DevSelectionStore` adds train/dev/meta rows and

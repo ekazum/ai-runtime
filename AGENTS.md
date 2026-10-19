@@ -4,7 +4,7 @@ ai-runtime gives the mechanics of a threaded ML service or training pipeline: ba
 threads under one shutdown event, stopping them in order, SQLite stores, checkpoint files and YAML configs. Nothing in
 it knows what an item, a model or a result is; the project supplies those.
 
-Install: `pip install "ai-runtime[torch,config] @ git+https://github.com/ekazum/ai-runtime.git@v0.3.1"`. The core is
+Install: `pip install "ai-runtime[torch,config] @ git+https://github.com/ekazum/ai-runtime.git@v0.4.0"`. The core is
 standard library only; `[torch]` is needed for `ai_runtime.checkpoints`, `[config]` for `ai_runtime.yaml_config`.
 Everything else imports from the top level: `from ai_runtime import ...`.
 
@@ -13,8 +13,9 @@ Everything else imports from the top level: `from ai_runtime import ...`.
 | Area | ai-runtime provides | The project writes |
 |---|---|---|
 | Batching | `GpuBatchStage`, `BatchRequest` | a model meeting `BatchModel` |
-| Threads | `ThreadHandle`, `ServiceSupervisor`, `Pipeline`, `SHUTDOWN_SENTINEL` | the thread targets (`run` methods) |
+| Threads | `ThreadHandle`, `ServiceSupervisor`, `ThreadStages`, `SHUTDOWN_SENTINEL` | the thread targets (`run` methods) |
 | Primitives | `ReadWriteLock`, `LockedCounter`, `ServingRegistry` (protocol) | — |
+| Logging | `logging.setup_logging`, `logging.LOG_FORMAT` | one `setup_logging()` call per entry point |
 | Discovery | `ServiceEndpoint` | the service and its port |
 | Stores | `SqliteStore`, `DevSelectionStore` | the rows |
 | Checkpoints | `checkpoints.BaseCheckpointManager`, `checkpoints.LatestBestCheckpointManager` | a subclass when it needs more files |
@@ -38,7 +39,7 @@ ThreadHandle(target, name, daemon=False)          .start() .join(timeout) .is_al
 ServiceSupervisor(name="ServiceSupervisor", shutdown_event=None)
     .add(target, name, daemon=False, ready=None) .start() .wait_ready(timeout) -> bool
     .dead_threads() .stop(join_timeout) .dial(address, timeout, retry_interval=5.0) .drain(*queues)
-Pipeline(name, shutdown_event=None, join_timeout=30.0)
+ThreadStages(name, shutdown_event=None, join_timeout=30.0)
     .stage(name, targets, inbox=None, sentinel_after=None) .start() .wait() .stop(join_order)
 
 ReadWriteLock()        with lock.read_lock(): ...   with lock.write_lock(): ...
@@ -73,11 +74,11 @@ A batching service (see `examples/minimal/app.py`):
 
 A training pipeline:
 
-1. `pipeline = Pipeline("train")`; one `stage(name, target_or_targets, inbox=q)` per thread group, in start order.
+1. `stages = ThreadStages("train")`; one `stage(name, target_or_targets, inbox=q)` per thread group, in start order.
 2. Each target loops `while not shutdown_event.is_set()` with `q.get(timeout=...)`, and breaks when it gets
    `SHUTDOWN_SENTINEL`.
-3. `pipeline.start()`; `pipeline.wait()` returns once any thread sets the shutdown event.
-4. `pipeline.stop(join_order)` puts one sentinel per thread on each inbox and joins producers before consumers; a
+3. `stages.start()`; `stages.wait()` returns once any thread sets the shutdown event.
+4. `stages.stop(join_order)` puts one sentinel per thread on each inbox and joins producers before consumers; a
    stage with `sentinel_after="x"` gets its sentinels only after stage `x` has joined, so it drains what `x` sent.
 
 ## Rules that are easy to break
@@ -85,7 +86,7 @@ A training pipeline:
 - Compare the sentinel by identity: `item is SHUTDOWN_SENTINEL`.
 - Thread loops wait with a timeout (`queue.get(timeout=...)`, `ThreadHandle.interruptible_sleep`) so the shutdown
   event is seen; a bare `get()` hangs at stop.
-- Start threads through `ThreadHandle`, `ServiceSupervisor` or `Pipeline`; a target's exception then re-raises on
+- Start threads through `ThreadHandle`, `ServiceSupervisor` or `ThreadStages`; a target's exception then re-raises on
   `join` instead of vanishing.
 - A thread that may block past the join bound is added with `daemon=True`.
 - `BatchModel.process` returns exactly one result per item, in item order.
@@ -103,7 +104,7 @@ A training pipeline:
 
 | Repo | Gives | Depends on |
 |---|---|---|
-| ai-runtime | threads, `SHUTDOWN_SENTINEL`, `Pipeline`, GPU batching, service supervision, SQLite stores, checkpoint managers, `YamlConfig` | standard library; `[torch]`, `[config]` |
+| ai-runtime | threads, `SHUTDOWN_SENTINEL`, `ThreadStages`, GPU batching, service supervision, SQLite stores, checkpoint managers, `YamlConfig` | standard library; `[torch]`, `[config]` |
 | [ai-llm](https://github.com/ekazum/ai-llm) | an LLM generation service: engine, GPU worker, server, client, stats store | ai-runtime |
 | [ai-ui](https://github.com/ekazum/ai-ui) | a Flask web shell and a runs dashboard over a SQLite runs DB | ai-runtime |
 | [rl-core](https://github.com/ekazum/rl-core) | RL threads and data types: PPO, prioritized-replay client threads, Q-network inference, checkpoint writer | ai-runtime |
