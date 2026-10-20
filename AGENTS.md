@@ -4,7 +4,7 @@ ai-runtime gives the mechanics of a threaded ML service or training pipeline: ba
 threads under one shutdown event, stopping them in order, SQLite stores, checkpoint files and YAML configs. Nothing in
 it knows what an item, a model or a result is; the project supplies those.
 
-Install: `pip install "ai-runtime[torch,config] @ git+https://github.com/ekazum/ai-runtime.git@v0.4.0"`. The core is
+Install: `pip install "ai-runtime[torch,config] @ git+https://github.com/ekazum/ai-runtime.git@v0.4.1"`. The core is
 standard library only; `[torch]` is needed for `ai_runtime.checkpoints`, `[config]` for `ai_runtime.yaml_config`.
 Everything else imports from the top level: `from ai_runtime import ...`.
 
@@ -40,7 +40,7 @@ ServiceSupervisor(name="ServiceSupervisor", shutdown_event=None)
     .add(target, name, daemon=False, ready=None) .start() .wait_ready(timeout) -> bool
     .dead_threads() .stop(join_timeout) .dial(address, timeout, retry_interval=5.0) .drain(*queues)
 ThreadStages(name, shutdown_event=None, join_timeout=30.0)
-    .stage(name, targets, inbox=None, sentinel_after=None) .start() .wait() .stop(join_order)
+    .stage(name, targets, inbox=None, sentinel_after=None) .start() .wait() .stop(join_order, raise_errors=True)
 
 ReadWriteLock()        with lock.read_lock(): ...   with lock.write_lock(): ...
 LockedCounter()        .add(n) -> int  .value()  .load(value)
@@ -80,6 +80,7 @@ A training pipeline:
 3. `stages.start()`; `stages.wait()` returns once any thread sets the shutdown event.
 4. `stages.stop(join_order)` puts one sentinel per thread on each inbox and joins producers before consumers; a
    stage with `sentinel_after="x"` gets its sentinels only after stage `x` has joined, so it drains what `x` sent.
+   A thread's exception re-raises at its join; `raise_errors=False` logs it and joins the rest.
 
 ## Rules that are easy to break
 

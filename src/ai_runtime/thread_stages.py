@@ -66,10 +66,11 @@ class ThreadStages:
         """Block until some participant sets the shutdown event."""
         self.shutdown_event.wait()
 
-    def stop(self, join_order: list[str]) -> None:
+    def stop(self, join_order: list[str], raise_errors: bool = True) -> None:
         """Set the event, wake the consumers, join the stages in ``join_order``.
 
-        A captured thread exception is re-raised by its join.
+        A captured thread exception is re-raised by its join, or logged and the
+        joins go on when ``raise_errors`` is False.
         """
         self.shutdown_event.set()
         for name in join_order:
@@ -78,7 +79,14 @@ class ThreadStages:
                 self._push_sentinels(stage.inbox, len(stage.handles))
         for name in join_order:
             for handle in self._stages[name].handles:
-                handle.join(timeout=self._join_timeout)
+                try:
+                    handle.join(timeout=self._join_timeout)
+                except Exception as exc:
+                    if raise_errors:
+                        raise
+                    # The thread already logged its traceback.
+                    logger.error("%s: thread %s ended with %s: %s", self._name,
+                                 handle.name, type(exc).__name__, exc)
                 if handle.is_alive():
                     logger.warning("%s: thread %r did not exit within %.0fs",
                                    self._name, handle.name, self._join_timeout)
