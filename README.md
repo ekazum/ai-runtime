@@ -19,7 +19,8 @@ Threads, queues, GPU batching and service supervision for ML pipelines. The core
 - **Thread stages** (`ThreadStages`, `SHUTDOWN_SENTINEL`): named thread stages under one shutdown event, started in order;
   `stop(join_order)` sends each stage's sentinel and joins in that order, late sentinels after a named stage joins.
 - **Stores** (`SqliteStore`, `DevSelectionStore`): a SQLite file safe for one writer and readers on other hosts
-  (DELETE journal), tables that widen as new keys arrive; `DevSelectionStore` adds train/dev/meta rows and
+  (DELETE journal), an optional `SCHEMA_PATH` script run on open, tables that widen as new keys arrive;
+  `DevSelectionStore` adds train/dev/meta rows and
   best-so-far selection over the dev rows.
 - **Checkpoints** (`ai_runtime.checkpoints`, `[torch]`): atomic saves, snapshots, promote, delete;
   `LatestBestCheckpointManager` keeps `latest.pt` for resume and `best.pt` for the champion.

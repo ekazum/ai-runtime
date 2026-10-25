@@ -4,7 +4,7 @@ ai-runtime gives the mechanics of a threaded ML service or training pipeline: ba
 threads under one shutdown event, stopping them in order, SQLite stores, checkpoint files and YAML configs. Nothing in
 it knows what an item, a model or a result is; the project supplies those.
 
-Install: `pip install "ai-runtime[torch,config] @ git+https://github.com/ekazum/ai-runtime.git@v0.4.1"`. The core is
+Install: `pip install "ai-runtime[torch,config] @ git+https://github.com/ekazum/ai-runtime.git@v0.4.2"`. The core is
 standard library only; `[torch]` is needed for `ai_runtime.checkpoints`, `[config]` for `ai_runtime.yaml_config`.
 Everything else imports from the top level: `from ai_runtime import ...`.
 
@@ -46,7 +46,7 @@ ReadWriteLock()        with lock.read_lock(): ...   with lock.write_lock(): ...
 LockedCounter()        .add(n) -> int  .value()  .load(value)
 ServiceEndpoint(path)  .write(port, extra=None)  .read() -> dict | None  .clear()
 
-SqliteStore(directory, fresh=False)
+SqliteStore(directory, fresh=False)    # runs SCHEMA_PATH, when a subclass sets it, on every open
     .append(table, rows: list[dict], key) .set_pairs(table, values) .read(table, order_by=None) .read_pairs(table)
 DevSelectionStore(eval_dir)
     .add_train(epoch, metrics) .add_dev(epoch, checkpoint, metrics) .add_meta(key, value)
@@ -92,6 +92,7 @@ A training pipeline:
 - A thread that may block past the join bound is added with `daemon=True`.
 - `BatchModel.process` returns exactly one result per item, in item order.
 - `SqliteStore` is for one writer process; readers on other hosts are safe (DELETE journal).
+- A `SCHEMA_PATH` script runs on every open, so it uses `CREATE TABLE IF NOT EXISTS` (and the same for indexes).
 - `YamlConfig` subclasses that add a field validator give it a name the base class does not use; the same name
   replaces the base validator.
 - `ReadWriteLock` is not reentrant.

@@ -19,9 +19,6 @@ class DevSelectionStore(SqliteStore):
     def __init__(self, eval_dir: Path) -> None:
         """Open (creating if absent) the store under the run's eval dir."""
         super().__init__(eval_dir)
-        with self._connect() as db:
-            db.execute("PRAGMA synchronous=NORMAL")
-            db.executescript(self.SCHEMA_PATH.read_text(encoding="utf-8"))
 
     def add_train(self, epoch: int, metrics: dict) -> None:
         """One ``train_metrics`` row."""

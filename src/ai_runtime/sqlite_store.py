@@ -1,7 +1,8 @@
 """``SqliteStore`` — a SQLite file shared between a writer and readers on other hosts.
 
-Each subclass names its ``FILENAME``; the directory is the caller's. Journal mode
-is DELETE because WAL is not safe across hosts on network filesystems.
+Each subclass names its ``FILENAME``, and may name a ``SCHEMA_PATH`` run on open;
+the directory is the caller's. Journal mode is DELETE because WAL is not safe
+across hosts on network filesystems.
 ``append`` derives a table from its first row and widens it for later rows;
 ``set_pairs`` is the key/value form, for totals and counters.
 """
@@ -21,6 +22,7 @@ class SqliteStore:
     """A SQLite file with cross-host-safe defaults and dynamic tables."""
 
     FILENAME: str          # each store names its own file
+    SCHEMA_PATH: "Path | None" = None   # SQL script run on every open, if any
     _TIMEOUT = 60.0
 
     def __init__(self, directory: Path, fresh: bool = False) -> None:
@@ -32,6 +34,9 @@ class SqliteStore:
         self._columns: dict[str, list[str]] = {}
         if fresh and self._path.exists():
             self._path.unlink()
+        if self.SCHEMA_PATH is not None:
+            with self._connect() as db:
+                db.executescript(self.SCHEMA_PATH.read_text(encoding="utf-8"))
         logger.info("%s: %s ready.", type(self).__name__, self._path)
 
     @property
